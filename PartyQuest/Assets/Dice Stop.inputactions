@@ -1,0 +1,34 @@
+{
+    "name": "Dice Stop",
+    "maps": [
+        {
+            "name": "Stop Dice",
+            "id": "ac6032a5-15a0-4c04-9254-d6c83d38ae87",
+            "actions": [
+                {
+                    "name": "Stop",
+                    "type": "Button",
+                    "id": "a48ff33b-18ae-4e8d-9d50-92b27eb8269a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "6addfb1f-b138-4ae8-9fbe-a4e732a5b4a9",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Stop",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
