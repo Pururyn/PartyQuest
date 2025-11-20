@@ -1,4 +1,4 @@
-using System.Collections;
+/*using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -82,5 +82,112 @@ public class Spinner : MonoBehaviour
     {
         currentIndex = (currentIndex + 1) % ElementSprite.Length;
         DisplayImage.sprite = ElementSprite[currentIndex];
+    }
+}*/
+
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.InputSystem;
+
+public class Spinner : NetworkBehaviour
+{
+    [Header("Refs")]
+    public PoppingBox poppingBox;
+    public Image displayImage;
+    public Sprite[] elementSprites;
+
+    [Header("Spin Settings")]
+    public float shuffleSpeed = 0.05f;  // vitesse du shuffle
+    private bool isShuffling = false;
+
+    [SerializeField] private InputActionReference stopSpinInput;
+
+    private float shuffleTimer;
+    private int currentIndex = 0;
+
+    void Start()
+    {
+        if (elementSprites.Length > 0)
+            displayImage.sprite = elementSprites[0];
+
+        // Quand la box a fini d'arriver, on démarre le shuffle
+        if (poppingBox != null)
+            poppingBox.OnMovementStopped += StartShuffleLocal;
+    }
+
+    void OnEnable()
+    {
+        stopSpinInput.action.performed += OnStopPressed;
+        stopSpinInput.action.Enable();
+    }
+
+    void OnDisable()
+    {
+        stopSpinInput.action.performed -= OnStopPressed;
+        stopSpinInput.action.Disable();
+    }
+
+    void Update()
+    {
+        if (isShuffling)
+        {
+            shuffleTimer += Time.deltaTime;
+            if (shuffleTimer >= shuffleSpeed)
+            {
+                shuffleTimer = 0f;
+                currentIndex = Random.Range(0, elementSprites.Length);
+                displayImage.sprite = elementSprites[currentIndex];
+            }
+        }
+    }
+
+    // Trigger local : le joueur lance le shuffle quand la box arrive
+    void StartShuffleLocal()
+    {
+        if (!IsOwner) return;   // seul le joueur du tour peut contrôler
+
+        StartShuffleServerRpc();
+    }
+
+    [ServerRpc]
+    void StartShuffleServerRpc()
+    {
+        StartShuffleClientRpc();
+    }
+
+    [ClientRpc]
+    void StartShuffleClientRpc()
+    {
+        isShuffling = true;
+        shuffleTimer = 0f;
+    }
+
+    // Quand le joueur appuie pour arrêter
+    private void OnStopPressed(InputAction.CallbackContext context)
+    {
+        if (!IsOwner) return; // seul le joueur du tour peut arrêter
+
+        RequestStopServerRpc();
+    }
+
+    [ServerRpc]
+    void RequestStopServerRpc(ServerRpcParams rpcParams = default)
+    {
+        // le serveur choisit réellement le résultat final
+        int finalIndex = Random.Range(0, elementSprites.Length);
+
+        StopShuffleClientRpc(finalIndex);
+
+        // puis animation retour
+        poppingBox.ReturnPopClientRpc();
+    }
+
+    [ClientRpc]
+    void StopShuffleClientRpc(int finalIndex)
+    {
+        isShuffling = false;
+        displayImage.sprite = elementSprites[finalIndex];
+        currentIndex = finalIndex;
     }
 }
