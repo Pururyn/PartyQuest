@@ -9,58 +9,56 @@ using UnityEngine.Splines;
 [ExecuteAlways]
 public class Spawner : MonoBehaviour
 {
+    // --- Source des noeuds ---
     [Header("Source des noeuds")]
     public bool useSplineContainer = true;
     public SplineContainer splineContainer;
     public List<Transform> manualKnotTransforms = new List<Transform>();
 
+    // --- Prefabs & poids ---
     [Header("Prefabs & poids")]
     public List<GameObject> prefabs = new List<GameObject>();
     public List<float> prefabWeights = new List<float>();
 
+    // --- Options d'instanciation ---
     [Header("Options d'instanciation")]
     public bool instantiateInEditor = true;
     public bool useWeightsAsProbability = true;
     public bool clearPreviousInstances = true;
     public Transform instancesParent;
 
+    // --- Seed / stabilité ---
     [Header("Seed / stabilité")]
     [Tooltip("Seed deterministe pour la génération. Change ce nombre pour obtenir un autre placement.")]
     public int seed = 12345;
     [Tooltip("Si true, génère aléatoirement un seed à l'entrée en PlayMode (non deterministe).")]
     public bool randomizeSeedOnPlay = false;
 
-    // Internal
+    // Internal - Optimisations
     private List<GameObject> spawnedInstances = new List<GameObject>();
     private List<int> chosenIndices = new List<int>();
+    private List<Vector3> knotPositionsCache = new List<Vector3>(); // Cache pour éviter les allocations en Update
     private bool dirty = true;
     private int activeSeed;
+    private int currentKnotCount = -1; // Compteur pour vérifier si le nombre de noeuds a changé
+
+    public List<Vector3> GetKnotPositions()
+    {
+        // Assurez-vous que le cache est mis à jour avant de le retourner
+        UpdateKnotPositionsCache();
+        return knotPositionsCache;
+    }
 
     void OnEnable()
     {
-        if (instancesParent == null)
-        {
-            GameObject go = transform.Find("__Spawner_Instances")?.gameObject;
-            if (go == null)
-            {
-                go = new GameObject("__Spawner_Instances");
-                // on affiche en scène mais on ne veut pas que ça soit dans les builds
-                go.hideFlags = HideFlags.DontSaveInBuild;
-                go.transform.SetParent(transform, false);
-            }
-            instancesParent = go.transform;
-        }
-
-        // determine active seed
+        SetupParent();
         DetermineActiveSeed();
-
         dirty = true;
         UpdateSpawned();
     }
 
     void Start()
     {
-        // si on entre en Play, on peut randomiser le seed si demandé
         DetermineActiveSeed();
         dirty = true;
         UpdateSpawned();
@@ -68,15 +66,34 @@ public class Spawner : MonoBehaviour
 
     void OnValidate()
     {
-        // appelé quand on change quelque chose dans l'inspector
+        // Marque comme 'dirty' quand on change une propriété dans l'inspecteur
         dirty = true;
+    }
+
+    // Nouvelle fonction pour initialiser/trouver le parent des instances
+    void SetupParent()
+    {
+        if (instancesParent == null)
+        {
+            Transform existing = transform.Find("__Spawner_Instances");
+            if (existing != null)
+            {
+                instancesParent = existing;
+            }
+            else
+            {
+                GameObject go = new GameObject("__Spawner_Instances");
+                go.hideFlags = HideFlags.DontSaveInBuild;
+                go.transform.SetParent(transform, false);
+                instancesParent = go.transform;
+            }
+        }
     }
 
     void DetermineActiveSeed()
     {
         if (Application.isPlaying && randomizeSeedOnPlay)
         {
-            // seed pseudo-aléatoire à l'entrée en play (non deterministe entre runs)
             activeSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         }
         else
@@ -89,153 +106,181 @@ public class Spawner : MonoBehaviour
     {
         if (!Application.isPlaying && !instantiateInEditor) return;
 
-        // récupère les positions pour savoir s'il y a un changement de nombre de noeuds
-        var positions = GetKnotPositions();
-        if (positions == null) return;
+        // Met à jour la position cache
+        UpdateKnotPositionsCache();
+        int n = knotPositionsCache.Count;
 
-        // si on n'est pas dirty et que le nombre d'instances correspond au nombre de positions -> rien à faire
-        if (!dirty && spawnedInstances.Count == positions.Count) return;
+        // Condition de mise à jour optimisée : vérifie si dirty OU si le nombre de noeuds a changé
+        if (!dirty && currentKnotCount == n) return;
 
-        // sinon on met à jour
+        currentKnotCount = n;
         UpdateSpawned();
     }
 
     public void ForceRespawn()
     {
-        DetermineActiveSeed(); // si tu veux randomizer le seed avant chaque respawn selon randomizeSeedOnPlay
+        DetermineActiveSeed();
         dirty = true;
         UpdateSpawned();
     }
 
     public void UpdateSpawned()
     {
-        var positions = GetKnotPositions();
-        if (positions == null) return;
-        int n = positions.Count;
-        if (n == 0) return;
-        if (prefabs == null || prefabs.Count == 0) return;
+        // Utilise le cache des positions au lieu d'allouer une nouvelle liste
+        UpdateKnotPositionsCache();
+        int n = knotPositionsCache.Count;
+        currentKnotCount = n;
 
-        // valider poids
+        if (n == 0 || prefabs == null || prefabs.Count == 0)
+        {
+            ClearSpawned();
+            return;
+        }
+
+        // Valider poids (inchangé, nécessaire)
         if (prefabWeights == null || prefabWeights.Count != prefabs.Count)
         {
             prefabWeights = new List<float>(prefabs.Count);
             for (int i = 0; i < prefabs.Count; i++) prefabWeights.Add(1f);
         }
 
-        // Si clearPreviousInstances, on supprime les précédentes instanciations avant de recréer.
+        // Gérer le nettoyage
         if (clearPreviousInstances) ClearSpawned();
+        int alreadySpawned = spawnedInstances.Count;
 
-        // Ajuster la taille du cache de choix pour correspondre au nombre de positions
-        if (chosenIndices == null) chosenIndices = new List<int>();
+        // Ajuster la taille des indices choisis
         while (chosenIndices.Count < n) chosenIndices.Add(-1);
         if (chosenIndices.Count > n) chosenIndices.RemoveRange(n, chosenIndices.Count - n);
 
-        // Générer des indices déterministes seulement si nécessaire (si -1 ou dirty)
+        // Générer les indices déterministes (utilise activeSeed + i pour la stabilité)
         for (int i = 0; i < n; i++)
         {
-            if (dirty || chosenIndices[i] < 0)
+            // Réinitialise l'indice si 'dirty' ou si c'est une nouvelle position
+            if (dirty || i >= alreadySpawned)
             {
                 chosenIndices[i] = ChooseIndexByWeightDeterministic(prefabWeights, activeSeed + i);
             }
         }
 
-        // Instancie selon chosenIndices (ne réinstancie pas si already spawned pour le même index)
-        // Si clearPreviousInstances était true, spawnedInstances est vide, donc on instancie tout.
-        // Si clearPreviousInstances est false et spawnedInstances existe, on ajoute jusqu'à ce que counts match.
-        int alreadySpawned = spawnedInstances?.Count ?? 0;
-
+        // Instanciation / Repositionnement
         for (int i = 0; i < n; i++)
         {
             int chosen = Mathf.Clamp(chosenIndices[i], 0, prefabs.Count - 1);
             GameObject chosenPrefab = prefabs[chosen];
             if (chosenPrefab == null) continue;
 
-            // si nous avons déjà une instance pour cette position (et que nous ne clear pas), skip la création
+            Vector3 position = knotPositionsCache[i];
+
+            // Repositionnement (si on ne clear pas et qu'une instance existe déjà pour cet index)
             if (!clearPreviousInstances && i < alreadySpawned)
             {
-                // repositionne simplement (utile si les positions ont changé)
                 var existing = spawnedInstances[i];
-                if (existing != null) existing.transform.position = positions[i];
+                if (existing != null) existing.transform.position = position;
                 continue;
             }
 
-            GameObject inst = null;
+            // Création d'une nouvelle instance
+            GameObject inst = InstantiateNewPrefab(chosenPrefab, position, chosen);
+            if (inst != null)
+            {
+                spawnedInstances.Add(inst);
+            }
+        }
+
+        // Supprimer les instances en trop si le nombre de nœuds a diminué
+        if (!clearPreviousInstances && spawnedInstances.Count > n)
+        {
+            int itemsToRemove = spawnedInstances.Count - n;
+            for (int i = 0; i < itemsToRemove; i++)
+            {
+                var go = spawnedInstances[spawnedInstances.Count - 1];
+                spawnedInstances.RemoveAt(spawnedInstances.Count - 1);
             #if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                try
-                {
-                    inst = (GameObject)PrefabUtility.InstantiatePrefab(chosenPrefab, instancesParent != null ? instancesParent.gameObject.scene : gameObject.scene);
-                }
-                catch
-                {
-                    inst = GameObject.Instantiate(chosenPrefab, instancesParent);
-                }
-            }
-            else
-            {
-                inst = GameObject.Instantiate(chosenPrefab, instancesParent);
-            }
+                if (!Application.isPlaying) DestroyImmediate(go);
+                else Destroy(go);
             #else
-            inst = GameObject.Instantiate(chosenPrefab, instancesParent);
+                            Destroy(go);
             #endif
-            if (inst == null) continue;
-
-            inst.transform.position = positions[i];
-            inst.transform.rotation = Quaternion.identity;
-            inst.transform.SetParent(instancesParent, true);
-
-            if (!useWeightsAsProbability)
-            {
-                float scale = 1f;
-                if (prefabWeights != null && prefabWeights.Count > chosen) scale = Mathf.Max(0.0001f, prefabWeights[chosen]);
-                inst.transform.localScale = Vector3.one * scale;
             }
-
-            spawnedInstances.Add(inst);
         }
 
         dirty = false;
     }
 
-    public List<Vector3> GetKnotPositions()
+    // Nouvelle fonction pour gérer l'instanciation (plus propre)
+    GameObject InstantiateNewPrefab(GameObject chosenPrefab, Vector3 position, int chosenIndex)
     {
-        var positions = new List<Vector3>();
+        GameObject inst = null;
+        #if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            // Instanciation spécifique à l'éditeur pour conserver le lien prefab
+            inst = PrefabUtility.InstantiatePrefab(chosenPrefab, instancesParent) as GameObject;
+        }
+        else
+        {
+            inst = GameObject.Instantiate(chosenPrefab, instancesParent);
+        }
+        #else
+                inst = GameObject.Instantiate(chosenPrefab, instancesParent);
+        #endif
 
-        if (useSplineContainer && splineContainer != null)
+        if (inst == null) return null;
+
+        inst.transform.position = position;
+        inst.transform.rotation = Quaternion.identity;
+        // La mise en parent est gérée dans InstantiatePrefab/Instantiate
+
+        if (!useWeightsAsProbability)
+        {
+            float scale = 1f;
+            if (prefabWeights != null && prefabWeights.Count > chosenIndex) scale = Mathf.Max(0.0001f, prefabWeights[chosenIndex]);
+            inst.transform.localScale = Vector3.one * scale;
+        }
+
+        return inst;
+    }
+
+    // Remplace GetKnotPositions(). Met à jour le cache sans créer de nouvelle liste.
+    void UpdateKnotPositionsCache()
+    {
+        knotPositionsCache.Clear();
+
+        if (useSplineContainer && splineContainer != null && splineContainer.Splines != null)
         {
             try
             {
-                if (splineContainer.Splines != null && splineContainer.Splines.Count > 0)
+                // *** SUPPORT MULTI-SPLINE ICI ***
+                foreach (var spline in splineContainer.Splines)
                 {
-                    var spline = splineContainer.Splines[0];
-                    int count = spline.Count;
-
-                    for (int i = 0; i < count; i++)
+                    if (spline != null)
                     {
-                        var knot = spline[i];
-                        // selon la version du package, la propriété peut s'appeler Position / LocalPosition / Value.Position
-                        // ici on essaye Position (si erreur, le try/catch retournera fallback)
-                        positions.Add(splineContainer.transform.TransformPoint(knot.Position));
+                        // On itère sur les noeuds de CHAQUE spline
+                        for (int i = 0; i < spline.Count; i++)
+                        {
+                            var knot = spline[i];
+                            // Transforme la position locale du noeud en position mondiale
+                            knotPositionsCache.Add(splineContainer.transform.TransformPoint(knot.Position));
+                        }
                     }
-
-                    return positions;
                 }
+
+                if (knotPositionsCache.Count > 0) return;
             }
-            catch { /* fallback below */ }
+            catch { /* Fallback en cas d'erreur avec le package Splines */ }
         }
 
-        if (manualKnotTransforms != null && manualKnotTransforms.Count > 0)
+        if (manualKnotTransforms != null)
         {
             foreach (var t in manualKnotTransforms)
-                if (t != null) positions.Add(t.position);
-            return positions;
+                if (t != null) knotPositionsCache.Add(t.position);
+
+            if (knotPositionsCache.Count > 0) return;
         }
 
+        // Fallback: utilise la position des enfants
         foreach (Transform child in transform)
-            positions.Add(child.position);
-
-        return positions;
+            knotPositionsCache.Add(child.position);
     }
 
     // Choix deterministe à partir d'un seed (System.Random)
@@ -245,6 +290,7 @@ public class Spawner : MonoBehaviour
         foreach (var w in weights) total += Math.Max(0.0, w);
         if (total <= 0.0) return 0;
 
+        // System.Random est essentiel pour le DÉTERMINISME avec un seed donné
         var rnd = new System.Random(deterministSeed);
         double r = rnd.NextDouble() * total;
         double s = 0.0;
@@ -262,12 +308,12 @@ public class Spawner : MonoBehaviour
         {
             var go = spawnedInstances[i];
             if (go == null) continue;
-           #if UNITY_EDITOR
+        #if UNITY_EDITOR
             if (!Application.isPlaying) DestroyImmediate(go);
             else Destroy(go);
-           #else
+        #else
             Destroy(go);
-           #endif
+        #endif
         }
         spawnedInstances.Clear();
     }
