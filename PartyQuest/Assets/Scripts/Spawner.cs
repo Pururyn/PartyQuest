@@ -160,7 +160,7 @@ public class Spawner : MonoBehaviour
             }
 
             GameObject inst = null;
-#if UNITY_EDITOR
+            #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
                 try
@@ -176,9 +176,9 @@ public class Spawner : MonoBehaviour
             {
                 inst = GameObject.Instantiate(chosenPrefab, instancesParent);
             }
-#else
+            #else
             inst = GameObject.Instantiate(chosenPrefab, instancesParent);
-#endif
+            #endif
             if (inst == null) continue;
 
             inst.transform.position = positions[i];
@@ -198,7 +198,7 @@ public class Spawner : MonoBehaviour
         dirty = false;
     }
 
-    List<Vector3> GetKnotPositions()
+    public List<Vector3> GetKnotPositions()
     {
         var positions = new List<Vector3>();
 
@@ -262,12 +262,12 @@ public class Spawner : MonoBehaviour
         {
             var go = spawnedInstances[i];
             if (go == null) continue;
-#if UNITY_EDITOR
+           #if UNITY_EDITOR
             if (!Application.isPlaying) DestroyImmediate(go);
             else Destroy(go);
-#else
+           #else
             Destroy(go);
-#endif
+           #endif
         }
         spawnedInstances.Clear();
     }
