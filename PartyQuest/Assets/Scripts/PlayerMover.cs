@@ -6,14 +6,17 @@ public class PlayerMover : MonoBehaviour
 {
     [Header("Références")]
     [Tooltip("Référence au script Spawner pour obtenir la liste des positions.")]
-    public Spawner targetSpawner;
+    [SerializeField]
+    private Spawner targetSpawner;
 
     [Header("Paramètres de mouvement")]
     [Tooltip("Vitesse de déplacement (plus c'est grand, plus c'est rapide)")]
-    public float moveSpeed = 1.0f;
+    [SerializeField, Range(1f, 10f)]
+    private float moveSpeed = 1.0f;
 
     [Tooltip("Temps d'attente à chaque nœud avant de passer au suivant.")]
-    public float waitTimeAtKnot = 0.5f;
+    [SerializeField, Range(0f, 1f)]
+    private float waitTimeAtKnot = 0.5f;
 
     // Index de la position actuelle du joueur
     private int currentKnotIndex = 0;
