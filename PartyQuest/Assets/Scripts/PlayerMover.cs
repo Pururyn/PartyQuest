@@ -1,108 +1,92 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode; // Nécessaire pour le réseau
 
-public class PlayerMover : MonoBehaviour
+public class PlayerMover : NetworkBehaviour
 {
     [Header("Références")]
-    [Tooltip("Référence au script Spawner pour obtenir la liste des positions.")]
-    [SerializeField]
-    private Spawner targetSpawner;
+    [SerializeField] private Spawner targetSpawner;
 
     [Header("Paramètres de mouvement")]
-    [Tooltip("Vitesse de déplacement (plus c'est grand, plus c'est rapide)")]
-    [SerializeField, Range(1f, 10f)]
-    private float moveSpeed = 1.0f;
-
-    [Tooltip("Temps d'attente à chaque nœud avant de passer au suivant.")]
-    [SerializeField, Range(0f, 1f)]
-    private float waitTimeAtKnot = 0.5f;
+    [SerializeField, Range(1f, 10f)] private float moveSpeed = 5.0f;
+    [SerializeField, Range(0f, 1f)] private float waitTimeAtKnot = 0.1f;
 
     // Index de la position actuelle du joueur
-    private int currentKnotIndex = 0;
+    // NetworkVariable permet de synchroniser la position logique (index) entre tous
+    public NetworkVariable<int> currentKnotIndex = new NetworkVariable<int>(0);
 
-    // Cache de la liste de positions pour éviter d'appeler la méthode à chaque frame
     private List<Vector3> knotPositions;
 
-
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        if (targetSpawner == null)
+        if (targetSpawner == null) targetSpawner = FindObjectOfType<Spawner>();
+
+        // Récupère les positions
+        if (targetSpawner != null)
         {
-            Debug.LogError("PlayerMover nécessite une référence au Spawner ! Assurez-vous qu'il est assigné dans l'Inspecteur.");
-            enabled = false;
-            return;
+            knotPositions = targetSpawner.GetKnotPositions();
+
+            // Place le joueur au départ s'il vient d'arriver et que c'est le serveur qui décide
+            if (IsServer && knotPositions.Count > 0)
+            {
+                transform.position = knotPositions[currentKnotIndex.Value];
+            }
         }
-
-        // Récupère les positions une fois au début
-        knotPositions = targetSpawner.GetKnotPositions();
-
-        if (knotPositions == null || knotPositions.Count < 2)
-        {
-            Debug.LogError("Le Spawner n'a pas assez de nœuds pour le mouvement.");
-            enabled = false;
-            return;
-        }
-
-        // Déplace le joueur au premier nœud (index 0)
-        transform.position = knotPositions[0];
-
-        // Lance la séquence de déplacement automatique
-        StartCoroutine(FollowPath());
     }
 
     /// <summary>
-    /// Coroutine pour déplacer le joueur automatiquement de nœud en nœud.
+    /// Appelée par le TurnManager (côté Serveur) après le lancer de dé.
     /// </summary>
-    IEnumerator FollowPath()
+    public void StartMoveSequence(int steps)
     {
-        // On commence au premier nœud
-        currentKnotIndex = 0;
+        // On prévient tous les clients de lancer l'animation
+        MoveClientRpc(steps);
+    }
 
-        // Boucle infinie pour suivre le chemin
-        while (true)
+    [ClientRpc]
+    private void MoveClientRpc(int steps)
+    {
+        StartCoroutine(MoveRoutine(steps));
+    }
+
+    IEnumerator MoveRoutine(int steps)
+    {
+        if (knotPositions == null || knotPositions.Count == 0) yield break;
+
+        for (int i = 0; i < steps; i++)
         {
-            // Position de départ
+            // 1. Calcul du prochain index
+            int nextIndex = (currentKnotIndex.Value + 1) % knotPositions.Count;
             Vector3 startPos = transform.position;
+            Vector3 targetPos = knotPositions[nextIndex];
 
-            // Index du nœud cible (le nœud suivant)
-            int nextKnotIndex = (currentKnotIndex + 1) % knotPositions.Count;
-
-            // Si la spline n'est pas "fermée", vous pourriez arrêter à la fin :
-            // if (nextKnotIndex == 0 && currentKnotIndex == knotPositions.Count - 1) yield break;
-
-            Vector3 targetPos = knotPositions[nextKnotIndex];
-
-            // Calcule la distance pour déterminer le temps de mouvement (pour une vitesse constante)
+            // 2. Animation de déplacement vers le prochain noeud
             float distance = Vector3.Distance(startPos, targetPos);
-            // Time.deltaTime n'est pas utilisé ici, nous utilisons le Time.time pour une interpolation temporelle
-            float journeyDuration = distance / moveSpeed;
+            float duration = distance / moveSpeed;
+            float elapsed = 0f;
 
-            float startTime = Time.time;
-
-            // Déplacement fluide vers le nœud cible
-            while (Time.time < startTime + journeyDuration)
+            while (elapsed < duration)
             {
-                float timeElapsed = Time.time - startTime;
-                float t = timeElapsed / journeyDuration; // Valeur entre 0 et 1
-
-                transform.position = Vector3.Lerp(startPos, targetPos, t);
-
-                //// Optionnel : Rotation vers le point cible
-                //Quaternion targetRotation = Quaternion.LookRotation(targetPos - transform.position);
-                //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
-
-                yield return null; // Attend la prochaine frame
+                transform.position = Vector3.Lerp(startPos, targetPos, elapsed / duration);
+                elapsed += Time.deltaTime;
+                yield return null;
             }
 
-            // Assurez-vous que le joueur est exactement sur la cible
             transform.position = targetPos;
 
-            // Met à jour l'index
-            currentKnotIndex = nextKnotIndex;
+            // 3. Mise à jour de l'index (seulement si on est le serveur pour la variable réseau, 
+            // mais on le simule localement pour la suite de la boucle)
+            if (IsServer) currentKnotIndex.Value = nextIndex;
 
-            // Temps d'attente au nœud avant de repartir
             yield return new WaitForSeconds(waitTimeAtKnot);
+        }
+
+        // 4. Fin du déplacement
+        if (IsServer)
+        {
+            // On notifie le TurnManager que le tour est techniquement fini
+            TurnManager.Instance.FinishTurn();
         }
     }
 }
