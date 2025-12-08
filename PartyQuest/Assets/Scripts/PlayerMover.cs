@@ -1,92 +1,84 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Netcode; // Nécessaire pour le réseau
+using Unity.Netcode;
 
 public class PlayerMover : NetworkBehaviour
 {
-    [Header("Références")]
-    [SerializeField] private Spawner targetSpawner;
+    [Header("Réglages")]
+    [SerializeField] private float moveSpeed = 5.0f;
 
-    [Header("Paramètres de mouvement")]
-    [SerializeField, Range(1f, 10f)] private float moveSpeed = 5.0f;
-    [SerializeField, Range(0f, 1f)] private float waitTimeAtKnot = 0.1f;
-
-    // Index de la position actuelle du joueur
-    // NetworkVariable permet de synchroniser la position logique (index) entre tous
+    // --- DONNÉES SYNCHRONISÉES ---
+    // Permet de savoir si ce pion est géré par l'IA
+    public NetworkVariable<bool> isAI = new NetworkVariable<bool>(false);
+    // Pour la future sélection de perso (0=Mario, 1=Luigi, etc.)
+    public NetworkVariable<int> characterId = new NetworkVariable<int>(0);
+    // Position actuelle sur le plateau (index du noeud)
     public NetworkVariable<int> currentKnotIndex = new NetworkVariable<int>(0);
 
     private List<Vector3> knotPositions;
+    private Spawner targetSpawner;
 
     public override void OnNetworkSpawn()
     {
-        if (targetSpawner == null) targetSpawner = FindObjectOfType<Spawner>();
+        // Trouve le spawner automatiquement
+        targetSpawner = FindFirstObjectByType<Spawner>();
 
-        // Récupère les positions
         if (targetSpawner != null)
         {
             knotPositions = targetSpawner.GetKnotPositions();
-
-            // Place le joueur au départ s'il vient d'arriver et que c'est le serveur qui décide
-            if (IsServer && knotPositions.Count > 0)
-            {
+            // Placement initial
+            if (knotPositions.Count > 0)
                 transform.position = knotPositions[currentKnotIndex.Value];
-            }
+        }
+
+        // S'enregistre automatiquement auprès du chef d'orchestre
+        if (TurnManager.Instance != null)
+        {
+            TurnManager.Instance.RegisterPlayer(this);
         }
     }
 
-    /// <summary>
-    /// Appelée par le TurnManager (côté Serveur) après le lancer de dé.
-    /// </summary>
-    public void StartMoveSequence(int steps)
-    {
-        // On prévient tous les clients de lancer l'animation
-        MoveClientRpc(steps);
-    }
-
+    // Fonction appelée par le TurnManager pour lancer l'animation
     [ClientRpc]
-    private void MoveClientRpc(int steps)
+    public void MoveToStepClientRpc(int steps)
     {
         StartCoroutine(MoveRoutine(steps));
     }
 
-    IEnumerator MoveRoutine(int steps)
+    private IEnumerator MoveRoutine(int steps)
     {
-        if (knotPositions == null || knotPositions.Count == 0) yield break;
+        if (knotPositions == null) yield break;
 
         for (int i = 0; i < steps; i++)
         {
-            // 1. Calcul du prochain index
+            // Calcul du prochain noeud (boucle le circuit avec %)
             int nextIndex = (currentKnotIndex.Value + 1) % knotPositions.Count;
-            Vector3 startPos = transform.position;
-            Vector3 targetPos = knotPositions[nextIndex];
+            Vector3 start = transform.position;
+            Vector3 end = knotPositions[nextIndex];
 
-            // 2. Animation de déplacement vers le prochain noeud
-            float distance = Vector3.Distance(startPos, targetPos);
-            float duration = distance / moveSpeed;
-            float elapsed = 0f;
-
-            while (elapsed < duration)
+            // Animation fluide
+            float t = 0;
+            while (t < 1)
             {
-                transform.position = Vector3.Lerp(startPos, targetPos, elapsed / duration);
-                elapsed += Time.deltaTime;
+                t += Time.deltaTime * moveSpeed / Vector3.Distance(start, end);
+                transform.position = Vector3.Lerp(start, end, t);
                 yield return null;
             }
 
-            transform.position = targetPos;
+            // Validation de la position
+            transform.position = end;
 
-            // 3. Mise à jour de l'index (seulement si on est le serveur pour la variable réseau, 
-            // mais on le simule localement pour la suite de la boucle)
+            // Mise à jour de la variable réseau (Seul le serveur a le droit d'écrire)
             if (IsServer) currentKnotIndex.Value = nextIndex;
 
-            yield return new WaitForSeconds(waitTimeAtKnot);
+            yield return new WaitForSeconds(0.1f); // Petite pause sur la case
         }
 
-        // 4. Fin du déplacement
+        // Mouvement terminé -> On prévient le chef
         if (IsServer)
         {
-            // On notifie le TurnManager que le tour est techniquement fini
-            TurnManager.Instance.FinishTurn();
+            TurnManager.Instance.OnPlayerFinishedMoving();
         }
     }
 }

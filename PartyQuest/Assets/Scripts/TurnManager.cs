@@ -1,13 +1,26 @@
-using Unity.Netcode;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
 public class TurnManager : NetworkBehaviour
 {
     public static TurnManager Instance;
 
-    [SerializeField] private NetworkObject spinnerObject;
-    public NetworkVariable<ulong> currentTurnPlayerId = new NetworkVariable<ulong>(ulong.MaxValue);
-    private bool isTurnInProgress = false;
+    [Header("Références")]
+    [SerializeField] private Spinner spinnerScript;
+    [SerializeField] private GameObject playerPrefab; // Le MEME que dans NetworkManager
+
+    [Header("Références UI")] // NOUVEAU
+    [SerializeField] private GameObject startGameButton; // NOUVEAU : Référence au bouton
+
+    // Liste dynamique des joueurs (Humains + Bots)
+    public List<PlayerMover> activePlayers = new List<PlayerMover>();
+
+    // Variable synchronisée pour savoir à qui c'est le tour (index dans la liste)
+    public NetworkVariable<int> currentTurnIndex = new NetworkVariable<int>(0);
+
+    private bool isGameRunning = false;
 
     private void Awake()
     {
@@ -15,102 +28,117 @@ public class TurnManager : NetworkBehaviour
         else Instance = this;
     }
 
-    public override void OnNetworkSpawn()
+    // --- PHASE 1 : INITIALISATION ---
+
+    // Appelé automatiquement par les PlayerMovers quand ils apparaissent
+    public void RegisterPlayer(PlayerMover player)
     {
-        if (IsServer)
+        if (!activePlayers.Contains(player))
         {
-            // Initialisation : Le premier client connecté commence (ou l'hôte)
-            // Note: Ceci est basique, pour un vrai jeu il faut une liste de joueurs triée
-            if (NetworkManager.Singleton.ConnectedClientsIds.Count > 0)
-                currentTurnPlayerId.Value = NetworkManager.Singleton.ConnectedClientsIds[0];
+            activePlayers.Add(player);
         }
     }
 
-    public void OnClickLaunchDice()
+    // À lier à un bouton "START GAME" sur l'UI de l'Host uniquement
+    public void StartGameSequence()
     {
-        if (NetworkManager.Singleton.LocalClientId != currentTurnPlayerId.Value) return;
-        if (isTurnInProgress) return;
+        if (!IsServer || isGameRunning) return;
 
-        RequestTurnStartServerRpc(NetworkManager.Singleton.LocalClientId);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void RequestTurnStartServerRpc(ulong playerId)
-    {
-        if (!IsServer) return;
-        if (playerId != currentTurnPlayerId.Value) return;
-
-        // Le tour commence
-        if (spinnerObject != null && spinnerObject.IsSpawned)
+        if (startGameButton != null)
         {
-            spinnerObject.ChangeOwnership(playerId);
-            Spinner spinner = spinnerObject.GetComponent<Spinner>();
-            if (spinner != null)
-            {
-                spinner.poppingBox.StartPopClientRpc();
-                SetTurnInProgressClientRpc(true);
-            }
+            startGameButton.SetActive(false);
         }
+
+        StartCoroutine(SetupAndStartGame());
     }
 
-    // --- NOUVELLE FONCTION : Reçoit le résultat du Spinner ---
-    public void OnDiceResult(int steps)
+    private IEnumerator SetupAndStartGame()
     {
-        if (!IsServer) return;
+        isGameRunning = true;
 
-        Debug.Log($"Le dé a fait {steps}. Déplacement du joueur {currentTurnPlayerId.Value}...");
+        // Combler les places vides avec des Bots (Objectif 4 joueurs)
+        int currentCount = activePlayers.Count;
+        int slotsNeeded = 4 - currentCount;
 
-        // 1. Trouver l'objet Player du joueur actuel
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(currentTurnPlayerId.Value, out NetworkClient client))
+        for (int i = 0; i < slotsNeeded; i++)
         {
-            PlayerMover mover = client.PlayerObject.GetComponent<PlayerMover>();
+            // Spawn du Bot
+            GameObject bot = Instantiate(playerPrefab);
+            bot.GetComponent<NetworkObject>().Spawn(); // Spawn côté serveur
+
+            PlayerMover mover = bot.GetComponent<PlayerMover>();
             if (mover != null)
             {
-                // 2. Lancer le mouvement
-                mover.StartMoveSequence(steps);
+                mover.isAI.Value = true;
+                mover.name = $"Bot_{i + 1}";
             }
-            else
+        }
+
+        // Attente pour être sûr que tout est synchronisé
+        yield return new WaitForSeconds(1.0f);
+
+        Debug.Log("La partie commence !");
+        StartTurn();
+    }
+
+    // --- PHASE 2 : BOUCLE DE JEU ---
+
+    private void StartTurn()
+    {
+        if (activePlayers.Count == 0) return;
+
+        PlayerMover currentPlayer = activePlayers[currentTurnIndex.Value];
+        Debug.Log($"Tour du joueur {currentTurnIndex.Value} (AI: {currentPlayer.isAI.Value})");
+
+        // On donne le contrôle du dé au bon joueur
+        if (!currentPlayer.isAI.Value)
+        {
+            // C'est un humain : on lui donne l'ownership du dé pour qu'il puisse cliquer
+            if (spinnerScript != null && spinnerScript.GetComponent<NetworkObject>() != null)
             {
-                Debug.LogError("PlayerMover introuvable sur l'objet joueur !");
-                FinishTurn(); // Force la fin si erreur
+                spinnerScript.GetComponent<NetworkObject>().ChangeOwnership(currentPlayer.OwnerClientId);
+                spinnerScript.EnableSpinClientRpc(true);
+            }
+        }
+        else
+        {
+            // C'est un bot : le serveur garde la main
+            if (spinnerScript != null)
+            {
+                spinnerScript.GetComponent<NetworkObject>().RemoveOwnership();
+                spinnerScript.BotSpin();
             }
         }
     }
 
-    [ClientRpc]
-    private void SetTurnInProgressClientRpc(bool state)
-    {
-        isTurnInProgress = state;
-    }
-
-    public void FinishTurn()
+    // Appelé par le Spinner quand le résultat est tombé
+    public void ProcessDiceResult(int steps)
     {
         if (!IsServer) return;
 
-        SetTurnInProgressClientRpc(false);
-        Debug.Log("Tour terminé.");
+        // On désactive le dé pour tout le monde
+        if (spinnerScript != null) spinnerScript.EnableSpinClientRpc(false);
 
-        // --- LOGIQUE DE CHANGEMENT DE TOUR ---
-        // Exemple simple : on passe au ClientID suivant
-        // Dans un vrai jeu, utilisez une List<ulong> turnOrder
-        var clients = NetworkManager.Singleton.ConnectedClientsIds;
-        int currentIndex = -1;
+        // On bouge le joueur actuel
+        PlayerMover currentPlayer = activePlayers[currentTurnIndex.Value];
+        currentPlayer.MoveToStepClientRpc(steps);
+    }
 
-        for (int i = 0; i < clients.Count; i++)
+    // Appelé par le PlayerMover quand il a fini de bouger
+    public void OnPlayerFinishedMoving()
+    {
+        if (!IsServer) return;
+
+        // Passage au joueur suivant
+        int nextIndex = (currentTurnIndex.Value + 1) % activePlayers.Count;
+        currentTurnIndex.Value = nextIndex;
+
+        // Vérifier si on a fait un tour complet
+        if (nextIndex == 0)
         {
-            if (clients[i] == currentTurnPlayerId.Value)
-            {
-                currentIndex = i;
-                break;
-            }
+            Debug.Log("Fin du round !");
         }
 
-        // Joueur suivant (boucle)
-        if (clients.Count > 0)
-        {
-            int nextIndex = (currentIndex + 1) % clients.Count;
-            currentTurnPlayerId.Value = clients[nextIndex];
-            Debug.Log($"C'est au tour du joueur {currentTurnPlayerId.Value}");
-        }
+        StartTurn();
     }
 }

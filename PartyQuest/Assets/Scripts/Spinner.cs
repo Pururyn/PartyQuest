@@ -1,200 +1,81 @@
-/*using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.InputSystem;
-
-public class Spinner : MonoBehaviour
-{
-    public PoppingBox poppingbox;
-
-    public Image DisplayImage;
-    public Sprite[] ElementSprite;
-    public float SpinSpeed;
-
-    public int currentIndex = 0;
-    private bool isSpinning = false;
-    private float timer = 0f;
-
-    [SerializeField] private InputActionReference stopSpinAction; 
-
-    void Start()
-    {
-        if (ElementSprite.Length > 0)
-        {
-            DisplayImage.sprite = ElementSprite[currentIndex];
-        }
-
-        if (poppingbox != null)
-        {
-            poppingbox.OnMovementStopped += StartSpin;
-        }
-    }
-
-    void OnEnable()
-    {
-        if (stopSpinAction != null && stopSpinAction.action != null)
-            stopSpinAction.action.performed += OnStopSpinPerformed;
-        stopSpinAction?.action?.Enable();
-    }
-
-    void OnDisable()
-    {
-        if (stopSpinAction != null && stopSpinAction.action != null)
-            stopSpinAction.action.performed -= OnStopSpinPerformed;
-        stopSpinAction?.action?.Disable();
-    }
-
-    void Update()
-    {
-        if (isSpinning)
-        {
-            timer += Time.deltaTime;
-            if (timer >= SpinSpeed)
-            {
-                timer = 0f;
-                NextItem();
-            }
-        }
-    }
-
-    private void OnStopSpinPerformed(InputAction.CallbackContext context)
-    {
-        if (poppingbox != null && !poppingbox.IsMoving)
-        {
-            StopSpin();
-        }
-    }
-
-    void StartSpin()
-    {
-        isSpinning = true;
-    }
-
-    public void StopSpin()
-    {
-        isSpinning = false;
-        poppingbox.OnSpinStopped();
-    }
-
-    void NextItem()
-    {
-        currentIndex = (currentIndex + 1) % ElementSprite.Length;
-        DisplayImage.sprite = ElementSprite[currentIndex];
-    }
-}*/
-
 using Unity.Netcode;
-using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
+using UnityEngine.InputSystem; // Si tu utilises le nouveau système d'input
 
 public class Spinner : NetworkBehaviour
 {
-    [Header("Refs")]
+    [Header("Références")]
     public PoppingBox poppingBox;
     public Image displayImage;
     public Sprite[] elementSprites;
 
-    [Header("Spin Settings")]
-    public float shuffleSpeed = 0.05f;  // vitesse du shuffle
-    private bool isShuffling = false;
+    // Pour empêcher de spammer la touche
+    private bool canSpin = false;
 
-    [SerializeField] private InputActionReference stopSpinInput;
+    // --- 1. FONCTIONS APPELÉES PAR LE JEU ---
 
-    private float shuffleTimer;
-    private int currentIndex = 0;
-
-    void Start()
+    // Appelé par le TurnManager pour dire "C'est à toi de jouer"
+    [ClientRpc]
+    public void EnableSpinClientRpc(bool state)
     {
-        if (elementSprites.Length > 0)
-            displayImage.sprite = elementSprites[0];
-
-        // Quand la box a fini d'arriver, on démarre le shuffle
-        if (poppingBox != null)
-            poppingBox.OnMovementStopped += StartShuffleLocal;
-    }
-
-    void OnEnable()
-    {
-        stopSpinInput.action.performed += OnStopPressed;
-        stopSpinInput.action.Enable();
-    }
-
-    void OnDisable()
-    {
-        stopSpinInput.action.performed -= OnStopPressed;
-        stopSpinInput.action.Disable();
-    }
-
-    void Update()
-    {
-        if (isShuffling)
+        // On active le contrôle seulement si on est le propriétaire de l'objet
+        if (IsOwner)
         {
-            shuffleTimer += Time.deltaTime;
-            if (shuffleTimer >= shuffleSpeed)
-            {
-                shuffleTimer = 0f;
-                currentIndex = Random.Range(0, elementSprites.Length);
-                displayImage.sprite = elementSprites[currentIndex];
-            }
+            canSpin = state;
+            if (state && poppingBox != null) poppingBox.StartPopClientRpc(); // Sort la boîte
         }
     }
 
-    // Trigger local : le joueur lance le shuffle quand la box arrive
-    void StartShuffleLocal()
+    // Input : À lier à ton bouton UI "Lancer le dé"
+    public void OnPressStop()
     {
-        if (!IsOwner) return;   // seul le joueur du tour peut contrôler
+        // Vérifications de sécurité
+        if (!IsOwner) return; // Ce n'est pas mon objet
+        if (!canSpin) return; // Ce n'est pas mon tour ou j'ai déjà cliqué
 
-        StartShuffleServerRpc();
+        canSpin = false; // On désactive immédiatement pour éviter le double-clic
+        SubmitResultServerRpc();
     }
 
-    [ServerRpc]
-    void StartShuffleServerRpc()
+    // Version automatique pour les Bots (appelée par TurnManager)
+    public void BotSpin()
     {
-        StartShuffleClientRpc();
+        if (!IsServer) return;
+
+        if (poppingBox != null) poppingBox.StartPopClientRpc();
+
+        // Le bot attend 2 secondes avant de "cliquer"
+        Invoke(nameof(SubmitResultServerRpc), 2.0f);
+    }
+
+    // --- 2. LOGIQUE RÉSEAU (C'est ici que l'erreur se produisait sûrement) ---
+
+    [ServerRpc]
+    void SubmitResultServerRpc()
+    {
+        // 1. Calcul du résultat (1 à 6)
+        int resultIndex = Random.Range(0, elementSprites.Length);
+        int steps = resultIndex + 1;
+
+        // 2. Affichage visuel pour tout le monde
+        ShowResultClientRpc(resultIndex);
+
+        if (poppingBox != null) poppingBox.ReturnPopClientRpc(); // Rentre la boîte
+
+        // 3. Envoi du résultat au TurnManager
+        if (TurnManager.Instance != null)
+        {
+            TurnManager.Instance.ProcessDiceResult(steps);
+        }
     }
 
     [ClientRpc]
-    void StartShuffleClientRpc()
+    void ShowResultClientRpc(int index)
     {
-        isShuffling = true;
-        shuffleTimer = 0f;
-    }
-
-    // Quand le joueur appuie pour arrêter
-    private void OnStopPressed(InputAction.CallbackContext context)
-    {
-        if (!IsOwner) return; // seul le joueur du tour peut arrêter
-
-        RequestStopServerRpc();
-    }
-
-    [ServerRpc]
-    void RequestStopServerRpc(ServerRpcParams rpcParams = default)
-    {
-        // le serveur choisit le résultat final
-        int finalIndex = Random.Range(0, elementSprites.Length);
-
-        // 1. Affiche le résultat visuel sur tous les clients
-        StopShuffleClientRpc(finalIndex);
-
-        // 2. Animation retour de la boîte
-        poppingBox.ReturnPopClientRpc();
-
-        // 3. IMPORTANT : On convertit l'index en nombre de pas (Index 0 = 1 pas, Index 5 = 6 pas)
-        int stepsToMove = finalIndex + 1;
-
-        // 4. On prévient le TurnManager que le dé a parlé
-        TurnManager.Instance.OnDiceResult(stepsToMove);
-    }
-
-    [ClientRpc]
-    void StopShuffleClientRpc(int finalIndex)
-    {
-        isShuffling = false;
-        displayImage.sprite = elementSprites[finalIndex];
-        currentIndex = finalIndex;
+        if (displayImage != null && elementSprites.Length > index)
+        {
+            displayImage.sprite = elementSprites[index];
+        }
     }
 }
