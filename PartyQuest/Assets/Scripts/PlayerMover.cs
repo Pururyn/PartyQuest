@@ -9,12 +9,9 @@ public class PlayerMover : NetworkBehaviour
     [SerializeField] private float moveSpeed = 5.0f;
 
     // --- DONNÉES SYNCHRONISÉES ---
-    // Permet de savoir si ce pion est géré par l'IA
-    public NetworkVariable<bool> isAI = new NetworkVariable<bool>(false);
-    // Pour la future sélection de perso (0=Mario, 1=Luigi, etc.)
-    public NetworkVariable<int> characterId = new NetworkVariable<int>(0);
-    // Position actuelle sur le plateau (index du noeud)
-    public NetworkVariable<int> currentKnotIndex = new NetworkVariable<int>(0);
+    public NetworkVariable<bool> isAI = new NetworkVariable<bool>(false);// Permet de savoir si ce pion est géré par l'IA
+    public NetworkVariable<int> characterId = new NetworkVariable<int>(0);// Pour la future sélection de perso
+    public NetworkVariable<int> currentKnotIndex = new NetworkVariable<int>(0);// Position actuelle sur le plateau (index du noeud)
 
     private List<Vector3> knotPositions;
     private Spawner targetSpawner;
@@ -30,12 +27,6 @@ public class PlayerMover : NetworkBehaviour
             // Placement initial
             if (knotPositions.Count > 0)
                 transform.position = knotPositions[currentKnotIndex.Value];
-        }
-
-        // S'enregistre automatiquement auprès du chef d'orchestre
-        if (TurnManager.Instance != null)
-        {
-            TurnManager.Instance.RegisterPlayer(this);
         }
     }
 
