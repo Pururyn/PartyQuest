@@ -8,13 +8,13 @@ public class TurnManager : NetworkBehaviour
 
     [Header("Références")]
     [SerializeField] private Spinner spinnerScript;
-    [SerializeField] private GameObject playerPrefab;
+    [SerializeField] private GameObject playerPrefab; // Assure-toi que ce prefab a bien PlayerMover dessus
 
     [Header("Références UI")]
     [SerializeField] private GameObject startGameButton;
 
-    public List<PlayerMover> activePlayers = new List<PlayerMover>(); // Liste dynamique des joueurs (Humains + Bots)
-    public NetworkVariable<int> currentTurnIndex = new NetworkVariable<int>(0); // Pour savoir à qui c'est le tour
+    public List<PlayerMover> activePlayers = new List<PlayerMover>();
+    public NetworkVariable<int> currentTurnIndex = new NetworkVariable<int>(0);
 
     private void Awake()
     {
@@ -22,13 +22,10 @@ public class TurnManager : NetworkBehaviour
         else Instance = this;
     }
 
-    // --- PHASE 1 : INITIALISATION ---
-
-    // À lier à un bouton "START GAME" sur l'UI de l'Host uniquement
     public void StartGameSequence()
     {
         if (!IsServer) return;
-
+        // Assure-toi que GameSessionManager existe, sinon commente cette ligne pour tester
         GameSessionManager.Instance.SetupSessionServerRpc();
         SpawnPlayersFromSession();
     }
@@ -45,7 +42,10 @@ public class TurnManager : NetworkBehaviour
             else netObj.SpawnWithOwnership(sessionData[i].ClientId);
 
             PlayerMover mover = go.GetComponent<PlayerMover>();
-            mover.isAI.Value = sessionData[i].IsAI;
+
+            // --- CORRECTION ICI : IsAI avec majuscule ---
+            mover.IsAI.Value = sessionData[i].IsAI;
+
             activePlayers.Add(mover);
         }
         StartNextTurn();
@@ -53,19 +53,24 @@ public class TurnManager : NetworkBehaviour
 
     public void StartNextTurn()
     {
+        if (activePlayers.Count == 0) return;
+
         PlayerMover currentPlayer = activePlayers[currentTurnIndex.Value];
-        if (!currentPlayer.isAI.Value)
+
+        // --- CORRECTION ICI : IsAI avec majuscule ---
+        if (!currentPlayer.IsAI.Value)
         {
+            // C'est un humain
             spinnerScript.GetComponent<NetworkObject>().ChangeOwnership(currentPlayer.OwnerClientId);
             spinnerScript.EnableSpinClientRpc(true);
         }
         else
         {
+            // C'est un bot
             spinnerScript.BotSpin();
         }
     }
 
-    // Appelé par le Spinner quand le résultat est tombé
     public void ProcessDiceResult(int steps)
     {
         if (!IsServer) return;
