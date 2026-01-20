@@ -9,6 +9,11 @@ public class PlayerMover : NetworkBehaviour
     [Header("Réglages")]
     [SerializeField] private float moveSpeed = 5.0f;
 
+    // --- VARIABLES DE SYNCHRONISATION ---
+    public NetworkVariable<int> Score = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    // CORRECTION : Ajout de la variable manquante pour le bonus de dé
+    public NetworkVariable<int> nextRollBonus = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     public NetworkVariable<bool> IsAI = new NetworkVariable<bool>(false);
     public NetworkVariable<int> currentNodeIndex = new NetworkVariable<int>(0);
 
@@ -24,12 +29,15 @@ public class PlayerMover : NetworkBehaviour
             currentNode = spawner.allNodes[currentNodeIndex.Value];
             transform.position = currentNode.transform.position;
         }
+
+        Score.OnValueChanged += (oldVal, newVal) => {
+            Debug.Log($"Score mis à jour : {newVal}");
+        };
     }
 
     [ClientRpc]
     public void MoveToStepClientRpc(int steps)
     {
-        // On lance la Task sans attendre (Fire and Forget)
         _ = MoveRoutineAsync(steps);
     }
 
@@ -39,7 +47,6 @@ public class PlayerMover : NetworkBehaviour
 
         for (int i = 0; i < steps; i++)
         {
-            // --- SÉCURITÉ : Si l'objet est détruit pendant l'async ---
             if (this == null || transform == null) return;
 
             List<GameNode> neighbors = currentNode.connectedNodes;
@@ -47,7 +54,6 @@ public class PlayerMover : NetworkBehaviour
 
             if (neighbors.Count > 1)
             {
-                // INTERSECTION : On filtre le retour arrière
                 List<GameNode> choices = new List<GameNode>();
                 foreach (var n in neighbors) if (n != previousNode) choices.Add(n);
 
@@ -55,17 +61,16 @@ public class PlayerMover : NetworkBehaviour
                 {
                     if (IsOwner && !IsAI.Value)
                     {
-                        // RESTAURATION : On utilise l'await original sur l'IntersectionManager
                         nextTarget = await IntersectionManager.Instance.WaitForPlayerChoice(currentNode, choices);
-                        if (this == null) return; // Sécurité après l'attente
+                        if (this == null) return;
                         SubmitChoiceServerRpc(spawner.allNodes.IndexOf(nextTarget));
                     }
                     else
                     {
-                        // IA ou autres : on attend que le serveur change l'index
                         if (IsServer && IsAI.Value)
                         {
                             nextTarget = choices[Random.Range(0, choices.Count)];
+                            // CORRECTION CS1503 : On passe l'index (int) et non l'objet (GameNode)
                             currentNodeIndex.Value = spawner.allNodes.IndexOf(nextTarget);
                         }
 
@@ -83,14 +88,13 @@ public class PlayerMover : NetworkBehaviour
             }
             else { nextTarget = neighbors[0]; }
 
-            // --- ANIMATION DE DÉPLACEMENT ---
             Vector3 startPos = transform.position;
             Vector3 endPos = nextTarget.transform.position;
             float t = 0;
 
             while (t < 1)
             {
-                if (this == null) return; // Crash preventer
+                if (this == null) return;
                 t += Time.deltaTime * moveSpeed / Vector3.Distance(startPos, endPos);
                 transform.position = Vector3.Lerp(startPos, endPos, t);
                 await Task.Yield();
@@ -103,12 +107,67 @@ public class PlayerMover : NetworkBehaviour
             if (IsServer) currentNodeIndex.Value = spawner.allNodes.IndexOf(currentNode);
         }
 
-        // --- FIN DU TOUR ---
         if (IsServer)
         {
-            await Task.Delay(500); // Le petit délai de 0.5s pour la satisfaction visuelle
+            ApplyTileEffect();
+            await Task.Delay(1000);
             if (this != null) TurnManager.Instance.OnPlayerFinishedMoving();
         }
+    }
+
+    private void ApplyTileEffect()
+    {
+        Tile tile = currentNode.GetComponent<Tile>();
+        if (tile == null) return;
+
+        if (tile.type == TileType.Green)
+        {
+            if (Random.value > 0.5f)
+            {
+                nextRollBonus.Value = 2;
+                Debug.Log("Case VERTE : Bonus +2 au prochain tour !");
+            }
+            else
+            {
+                Score.Value += 5;
+                Debug.Log("Case VERTE : +5 points !");
+            }
+        }
+        else if (tile.type == TileType.Red)
+        {
+            if (Random.value > 0.5f)
+            {
+                Score.Value = Mathf.Max(0, Score.Value - 3);
+                Debug.Log("Case ROUGE : -3 points !");
+            }
+            else
+            {
+                Debug.Log("Case ROUGE : Recul !");
+                _ = MoveBackwardsAsync(1);
+            }
+        }
+    }
+
+    // CORRECTION CS0103 : Ajout de la méthode de recul manquante
+    private async Task MoveBackwardsAsync(int steps)
+    {
+        if (previousNode == null) return;
+
+        Vector3 startPos = transform.position;
+        Vector3 endPos = previousNode.transform.position;
+        float t = 0;
+
+        while (t < 1)
+        {
+            if (this == null) return;
+            t += Time.deltaTime * moveSpeed / Vector3.Distance(startPos, endPos);
+            transform.position = Vector3.Lerp(startPos, endPos, t);
+            await Task.Yield();
+        }
+
+        transform.position = endPos;
+        currentNode = previousNode;
+        if (IsServer) currentNodeIndex.Value = spawner.allNodes.IndexOf(currentNode);
     }
 
     [ServerRpc]
