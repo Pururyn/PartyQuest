@@ -3,12 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\jhuynh\\documents\\github\\partyquest\\partyquest\\assets\\scripts\\playermover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\jhuynh\\documents\\github\\partyquest\\partyquest\\assets\\scripts\\networkmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\networkmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\assets\\scripts\\playermover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\playermover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\assets\\scripts\\turnmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\turnmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\jhuynh\\documents\\github\\partyquest\\partyquest\\assets\\scripts\\patharrow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\patharrow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\assets\\scripts\\spinner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -27,38 +35,64 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "NetworkMenu.cs",
+              "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\NetworkMenu.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\NetworkMenu.cs",
+              "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\NetworkMenu.cs",
+              "RelativeToolTip": "Assets\\Scripts\\NetworkMenu.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-20T14:52:33.668Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PathArrow.cs",
+              "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PathArrow.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\PathArrow.cs",
+              "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PathArrow.cs",
+              "RelativeToolTip": "Assets\\Scripts\\PathArrow.cs",
+              "ViewState": "AgIAADIAAAAAAAAAAAAwwEcAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-20T14:17:29.265Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "PlayerMover.cs",
               "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PlayerMover.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerMover.cs",
               "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PlayerMover.cs",
               "RelativeToolTip": "Assets\\Scripts\\PlayerMover.cs",
-              "ViewState": "AgIAAE0AAAAAAAAAAAAAwHAAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAIwBYAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-20T13:18:40.455Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Spinner.cs",
               "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spinner.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Spinner.cs",
               "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spinner.cs",
               "RelativeToolTip": "Assets\\Scripts\\Spinner.cs",
-              "ViewState": "AgIAAF0AAAAAAAAAAAAmwHQAAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAEcAAAAAAAAAAAAuwGkAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-20T13:13:13.189Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "TurnManager.cs",
               "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\TurnManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\TurnManager.cs",
               "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\TurnManager.cs",
               "RelativeToolTip": "Assets\\Scripts\\TurnManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGAAAABUAAAAAAAAAA==",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAQwDUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-20T13:09:23.761Z",
               "EditorCaption": ""

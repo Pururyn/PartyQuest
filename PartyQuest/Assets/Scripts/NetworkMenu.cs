@@ -7,14 +7,15 @@ public class NetworkMenu : MonoBehaviour
     public void StartHost()
     {
         NetworkManager.Singleton.StartHost();
-        gameObject.SetActive(false); // cache le menu
-        SceneManager.LoadScene("Game");
+        // Utiliser NetworkSceneManager pour que tous les clients suivent !
+        NetworkManager.Singleton.SceneManager.LoadScene("Game", LoadSceneMode.Single);
+        gameObject.SetActive(false);
     }
 
     public void StartClient()
     {
+        // On se connecte SEULEMENT. On ne charge PAS de scène manuellement.
         NetworkManager.Singleton.StartClient();
-        gameObject.SetActive(false); // cache le menu
-        SceneManager.LoadScene("Game");
+        gameObject.SetActive(false);
     }
 }
