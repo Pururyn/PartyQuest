@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-using System.Threading.Tasks;
 
 public class PlayerMover : NetworkBehaviour
 {
@@ -20,159 +19,95 @@ public class PlayerMover : NetworkBehaviour
     {
         spawner = FindFirstObjectByType<Spawner>();
 
-        // Sécurité : Si le Spawner est vide, on force la génération
-        if (spawner != null && spawner.allNodes.Count == 0) spawner.ForceRespawn();
-
-        if (spawner != null && spawner.allNodes.Count > currentNodeIndex.Value)
+        if (spawner != null)
         {
-            currentNode = spawner.allNodes[currentNodeIndex.Value];
-            transform.position = currentNode.transform.position;
-
-            // --- ASTUCE ANTI-RECUL ---
-            // Au lieu de dire "je n'ai pas de précédent", on essaie de deviner lequel est derrière.
-            // On cherche un voisin qui a un index inférieur dans la liste du Spawner.
-            int myIndex = currentNodeIndex.Value;
-            foreach (var neighbor in currentNode.connectedNodes)
+            // Sécurité : On s'assure que les nœuds existent
+            if (spawner.allNodes.Count > currentNodeIndex.Value)
             {
-                int nIndex = spawner.allNodes.IndexOf(neighbor);
-                // Si le voisin est "avant" moi (i-1) ou si je suis au début (0) et lui à la fin (boucle)
-                if (nIndex != -1)
-                {
-                    // Si le voisin est l'index juste avant, ou le dernier (cas de la boucle fermée start->end)
-                    if (nIndex < myIndex || (myIndex == 0 && nIndex > myIndex + 1))
-                    {
-                        previousNode = neighbor;
-                        break;
-                    }
-                }
+                currentNode = spawner.allNodes[currentNodeIndex.Value];
+                transform.position = currentNode.transform.position;
             }
-            // Si on a rien trouvé, previousNode reste null, mais c'est rare.
         }
     }
 
     [ClientRpc]
     public void MoveToStepClientRpc(int steps)
     {
-        MoveRoutineAsync(steps);
+        // On stoppe toute routine en cours pour éviter les conflits
+        StopAllCoroutines();
+        StartCoroutine(MoveRoutine(steps));
     }
 
-    private async void MoveRoutineAsync(int steps)
+    private IEnumerator MoveRoutine(int steps)
     {
-        // Re-vérification de sécurité (si le spawner a été reset entre temps)
-        if (currentNode == null && spawner != null && spawner.allNodes.Count > currentNodeIndex.Value)
-            currentNode = spawner.allNodes[currentNodeIndex.Value];
+        // --- SÉCURITÉ ANTI-NULL (Ligne 83 probable) ---
+        if (spawner == null) spawner = FindFirstObjectByType<Spawner>();
+        if (currentNode == null && spawner != null) currentNode = spawner.allNodes[currentNodeIndex.Value];
 
-        if (currentNode == null) return;
+        if (spawner == null || currentNode == null)
+        {
+            Debug.LogError("Mouvement impossible : Spawner ou Node actuel introuvable !");
+            yield break;
+        }
 
         for (int i = 0; i < steps; i++)
         {
-            List<GameNode> neighbors = new List<GameNode>(currentNode.connectedNodes);
-
-            // Filtrage : On enlève le noeud d'où l'on vient
-            if (previousNode != null && neighbors.Contains(previousNode))
-            {
-                // Exception : Si c'est un cul-de-sac (un seul voisin qui est le précédent), on est obligé de faire demi-tour
-                if (neighbors.Count > 1)
-                {
-                    neighbors.Remove(previousNode);
-                }
-            }
+            // 1. Déterminer la destination
+            List<GameNode> neighbors = currentNode.connectedNodes;
+            if (neighbors == null || neighbors.Count == 0) yield break;
 
             GameNode nextTarget = null;
 
-            if (neighbors.Count == 0)
+            if (neighbors.Count > 1)
             {
-                Debug.LogWarning("Bloqué ! Aucun chemin.");
-                break;
-            }
-            else if (neighbors.Count == 1)
-            {
-                nextTarget = neighbors[0];
+                // Logique d'intersection (si tu en as une)
+                // Pour l'instant on prend le premier qui n'est pas le précédent
+                nextTarget = neighbors[0] == previousNode ? neighbors[1] : neighbors[0];
             }
             else
             {
-                // --- INTERSECTION ---
-                if (IsOwner)
-                {
-                    if (IsAI.Value)
-                    {
-                        await Task.Delay(500);
-                        nextTarget = neighbors[Random.Range(0, neighbors.Count)];
-                    }
-                    else
-                    {
-                        // Humain : Choix UI
-                        nextTarget = await IntersectionManager.Instance.WaitForPlayerChoice(currentNode, neighbors);
-                    }
-
-                    // Validation Serveur
-                    if (spawner != null)
-                    {
-                        int targetIdx = spawner.allNodes.IndexOf(nextTarget);
-                        if (targetIdx != -1) // Sécurité anti-reset à 0
-                            SubmitChoiceServerRpc(targetIdx);
-                    }
-                }
-                else
-                {
-                    // Spectateur : Attente synchro
-                    float timeOut = 0;
-                    // On attend que l'index change
-                    while (spawner.allNodes.IndexOf(currentNode) == currentNodeIndex.Value && timeOut < 10f)
-                    {
-                        timeOut += Time.deltaTime;
-                        await Task.Yield();
-                    }
-
-                    // Récupération de la nouvelle cible
-                    if (spawner.allNodes.Count > currentNodeIndex.Value)
-                        nextTarget = spawner.allNodes[currentNodeIndex.Value];
-
-                    // Fallback sécurité si désynchro
-                    if (nextTarget == null || !neighbors.Contains(nextTarget))
-                        nextTarget = neighbors[0];
-                }
+                nextTarget = neighbors[0];
             }
 
-            // Déplacement
+            // 2. Animation de déplacement
             Vector3 startPos = transform.position;
             Vector3 endPos = nextTarget.transform.position;
             float t = 0;
 
             while (t < 1)
             {
+                if (this == null) yield break; // Sécurité si l'objet est détruit
+
                 t += Time.deltaTime * moveSpeed / Vector3.Distance(startPos, endPos);
                 transform.position = Vector3.Lerp(startPos, endPos, t);
-                await Task.Yield();
+                yield return null;
             }
 
+            // 3. Mise à jour des positions
             transform.position = endPos;
             previousNode = currentNode;
             currentNode = nextTarget;
 
-            // Mise à jour Serveur continue
-            if (IsOwner && spawner != null)
+            // Le serveur met à jour l'index réseau pour la synchronisation
+            if (IsServer)
             {
                 int index = spawner.allNodes.IndexOf(currentNode);
-                if (index != -1) UpdatePositionServerRpc(index);
+                currentNodeIndex.Value = index;
             }
+
+            yield return new WaitForSeconds(0.1f);
         }
 
+        // 4. Fin du tour
         if (IsServer)
         {
-            TurnManager.Instance.OnPlayerFinishedMoving();
+            Invoke(nameof(NotifyTurnManager), 0.5f);
         }
     }
 
-    [ServerRpc]
-    void UpdatePositionServerRpc(int index)
+    private void NotifyTurnManager()
     {
-        currentNodeIndex.Value = index;
-    }
-
-    [ServerRpc]
-    void SubmitChoiceServerRpc(int targetIndex)
-    {
-        currentNodeIndex.Value = targetIndex;
+        if (TurnManager.Instance != null)
+            TurnManager.Instance.OnPlayerFinishedMoving();
     }
 }

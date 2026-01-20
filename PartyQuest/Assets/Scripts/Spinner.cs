@@ -1,8 +1,8 @@
-using UnityEngine;
-using Unity.Netcode;
-using UnityEngine.UI;
 using System.Collections;
+using Unity.Netcode;
+using UnityEngine;
 using UnityEngine.InputSystem; // Si tu utilises le nouveau système d'input
+using UnityEngine.UI;
 
 public class Spinner : NetworkBehaviour
 {
@@ -12,6 +12,9 @@ public class Spinner : NetworkBehaviour
 
     [Header("Réglages Animation")]
     [SerializeField] private float spinSpeed = 0.05f; // Vitesse de défilement (secondes)
+
+    [Header("Références UI")]
+    [SerializeField] private GameObject spinButton;
 
     // Pour empêcher de spammer la touche
     private bool canSpin = false;
@@ -57,21 +60,31 @@ public class Spinner : NetworkBehaviour
     public void EnableSpinClientRpc(bool state)
     {
         // On active le contrôle seulement si on est le propriétaire de l'objet
-        if (IsOwner) canSpin = state;
-
-        if (state)
+        if (IsOwner)
         {
-            StartSpinning(); // Lance l'animation visuelle quand le tour commence
+            canSpin = state;
+            if (spinButton != null) spinButton.SetActive(state);
+
+            if (state) StartSpinning();
         }
-       
+        else
+        {
+            // Pour les autres, on s'assure que c'est caché
+            if (spinButton != null) spinButton.SetActive(false);
+        }
     }
 
-    // Input : À lier à ton bouton UI "Lancer le dé"
     public void OnPressStop()
     {
-        // Vérifications de sécurité
-        if (!IsOwner || !canSpin) return; // Ce n'est pas mon tour ou j'ai déjà cliqué
-        canSpin = false; 
+        // DOUBLE SÉCURITÉ:
+        // 1. Est-ce que cet objet m'appartient vraiment ? (IsOwner)
+        // 2. Ai-je le droit de cliquer ? (canSpin)
+        if (!IsOwner || !canSpin) return;
+
+        // BLOQUAGE IMMÉDIAT DU SPAM
+        canSpin = false;
+        if (spinButton != null) spinButton.SetActive(false); // Disparition instantanée
+
         SubmitResultServerRpc();
     }
 
@@ -90,12 +103,14 @@ public class Spinner : NetworkBehaviour
     [ServerRpc]
     void SubmitResultServerRpc()
     {
+        // Sécurité Serveur : on vérifie que le client qui envoie le RPC est bien le proprio
+        if (!IsOwner) return;
+
         int resultIndex = Random.Range(0, elementSprites.Length);
         int steps = resultIndex + 1;
 
         ShowResultClientRpc(resultIndex);
 
-        // 2. Envoi du résultat au TurnManager
         if (TurnManager.Instance != null)
         {
             TurnManager.Instance.ProcessDiceResult(steps);

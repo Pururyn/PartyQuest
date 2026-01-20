@@ -25,7 +25,15 @@ public class TurnManager : NetworkBehaviour
     public void StartGameSequence()
     {
         if (!IsServer) return;
-        // Assure-toi que GameSessionManager existe, sinon commente cette ligne pour tester
+
+        if (startGameButton != null)
+        {
+            startGameButton.SetActive(false);
+        }
+
+        // On peut aussi prévenir les autres clients si besoin
+        HideStartButtonClientRpc();
+
         GameSessionManager.Instance.SetupSessionServerRpc();
         SpawnPlayersFromSession();
     }
@@ -57,16 +65,17 @@ public class TurnManager : NetworkBehaviour
 
         PlayerMover currentPlayer = activePlayers[currentTurnIndex.Value];
 
-        // --- CORRECTION ICI : IsAI avec majuscule ---
         if (!currentPlayer.IsAI.Value)
         {
-            // C'est un humain
+            // Donnes explicitement la propriété du Spinner au joueur dont c'est le tour
             spinnerScript.GetComponent<NetworkObject>().ChangeOwnership(currentPlayer.OwnerClientId);
+            // On active le dé chez lui
             spinnerScript.EnableSpinClientRpc(true);
         }
         else
         {
-            // C'est un bot
+            // Si c'est un bot, le serveur reprend la propriété pour être sûr
+            spinnerScript.GetComponent<NetworkObject>().RemoveOwnership();
             spinnerScript.BotSpin();
         }
     }
@@ -81,7 +90,17 @@ public class TurnManager : NetworkBehaviour
     public void OnPlayerFinishedMoving()
     {
         if (!IsServer) return;
+
+        // Nettoyage de la liste au cas où un joueur a été détruit/déconnecté
+        activePlayers.RemoveAll(item => item == null);
+
         currentTurnIndex.Value = (currentTurnIndex.Value + 1) % activePlayers.Count;
         StartNextTurn();
+    }
+
+    [ClientRpc]
+    private void HideStartButtonClientRpc()
+    {
+        if (startGameButton != null) startGameButton.SetActive(false);
     }
 }
