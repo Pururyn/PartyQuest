@@ -76,14 +76,32 @@ public class Spinner : NetworkBehaviour
 
     public void OnPressStop()
     {
-        // DOUBLE SÉCURITÉ:
-        // 1. Est-ce que cet objet m'appartient vraiment ? (IsOwner)
-        // 2. Ai-je le droit de cliquer ? (canSpin)
+        // 1. Vérification de base : l'objet doit m'appartenir sur le réseau
         if (!IsOwner || !canSpin) return;
 
-        // BLOQUAGE IMMÉDIAT DU SPAM
+        // 2. SÉCURITÉ CRUCIALE : Vérifier si le joueur dont c'est le tour est une IA
+        // Si c'est le tour d'un Bot, l'Host ne doit pas pouvoir cliquer, même s'il possède l'objet dé.
+        if (TurnManager.Instance != null)
+        {
+            var currentPlayer = TurnManager.Instance.activePlayers[TurnManager.Instance.currentTurnIndex.Value];
+
+            // Si le joueur actuel est marqué comme IA, on bloque le clic humain
+            if (currentPlayer.IsAI.Value)
+            {
+                Debug.Log("C'est le tour d'un bot, touche pas !");
+                return;
+            }
+
+            // Si le joueur actuel est un humain mais que ce n'est pas MON ClientId (en mode Client)
+            if (!IsServer && currentPlayer.OwnerClientId != NetworkManager.Singleton.LocalClientId)
+            {
+                return;
+            }
+        }
+
+        // Si on arrive ici, c'est bien notre tour et on est humain
         canSpin = false;
-        if (spinButton != null) spinButton.SetActive(false); // Disparition instantanée
+        if (spinButton != null) spinButton.SetActive(false);
 
         SubmitResultServerRpc();
     }
