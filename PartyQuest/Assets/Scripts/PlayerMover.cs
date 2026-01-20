@@ -125,7 +125,7 @@ public class PlayerMover : NetworkBehaviour
             if (Random.value > 0.5f)
             {
                 nextRollBonus.Value = 2;
-                Debug.Log("Case VERTE : Bonus +2 au prochain tour !");
+                Debug.Log("Case VERTE : Bonus +2 au prochain lancer !");
             }
             else
             {
@@ -148,7 +148,7 @@ public class PlayerMover : NetworkBehaviour
         }
     }
 
-    // CORRECTION CS0103 : Ajout de la méthode de recul manquante
+    
     private async Task MoveBackwardsAsync(int steps)
     {
         if (previousNode == null) return;
