@@ -1,38 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\",
+  "WorkspaceRootPath": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\assets\\scripts\\game session\\playerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\jhuynh\\documents\\github\\partyquest\\partyquest\\assets\\scripts\\spinner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\spinner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\assets\\scripts\\game session\\playerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\game session\\playerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\salomoncohen\\documents\\github\\prj\\partyquest\\partyquest\\assets\\scripts\\tiles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\tiles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\salomoncohen\\documents\\github\\prj\\partyquest\\partyquest\\assets\\scripts\\spawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\spawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\salomoncohen\\documents\\github\\prj\\partyquest\\partyquest\\assets\\scripts\\playermover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\playermover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\assets\\scripts\\networkmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\networkmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\assets\\scripts\\turnmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\turnmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\assets\\scripts\\patharrow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\patharrow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\assets\\scripts\\spinner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\spinner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\assets\\scripts\\game session\\gamesessionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\game session\\gamesessionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,107 +22,44 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Tiles.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Tiles.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Tiles.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Tiles.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Tiles.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "Spinner.cs",
+              "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spinner.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Spinner.cs",
+              "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spinner.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Spinner.cs",
+              "ViewState": "AgIAADEAAAAAAAAAAAAowD4AAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-21T09:26:52.313Z",
+              "WhenOpened": "2026-01-21T09:08:07.431Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PlayerData.cs",
+              "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Game Session\\PlayerData.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Game Session\\PlayerData.cs",
+              "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Game Session\\PlayerData.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Game Session\\PlayerData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T09:15:38.672Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "Spawner.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spawner.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Spawner.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spawner.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Spawner.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAAAACgAAAAOAAAAAAAAAA==",
+              "Title": "GameSessionManager.cs",
+              "DocumentMoniker": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Game Session\\GameSessionManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Game Session\\GameSessionManager.cs",
+              "ToolTip": "C:\\Users\\jhuynh\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Game Session\\GameSessionManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Game Session\\GameSessionManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-21T09:00:28.355Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "PlayerData.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Game Session\\PlayerData.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Game Session\\PlayerData.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Game Session\\PlayerData.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Game Session\\PlayerData.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAQwB4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-20T16:20:48.549Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "NetworkMenu.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\NetworkMenu.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\NetworkMenu.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\NetworkMenu.cs",
-              "RelativeToolTip": "Assets\\Scripts\\NetworkMenu.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAkAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-20T14:52:33.668Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "PathArrow.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PathArrow.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\PathArrow.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PathArrow.cs",
-              "RelativeToolTip": "Assets\\Scripts\\PathArrow.cs",
-              "ViewState": "AgIAADIAAAAAAAAAAAAwwEcAAAA4AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-20T14:17:29.265Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "PlayerMover.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PlayerMover.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerMover.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\PlayerMover.cs",
-              "RelativeToolTip": "Assets\\Scripts\\PlayerMover.cs",
-              "ViewState": "AgIAAEUAAAAAAAAAAAAowJgAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-20T13:18:40.455Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Spinner.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spinner.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Spinner.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Spinner.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Spinner.cs",
-              "ViewState": "AgIAAEcAAAAAAAAAAAAuwGkAAAAgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-20T13:13:13.189Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "TurnManager.cs",
-              "DocumentMoniker": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\TurnManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\TurnManager.cs",
-              "ToolTip": "C:\\Users\\salomoncohen\\Documents\\GitHub\\prj\\PartyQuest\\PartyQuest\\Assets\\Scripts\\TurnManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\TurnManager.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAAQwDUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-20T13:09:23.761Z"
+              "WhenOpened": "2026-01-21T09:15:02.155Z"
             }
           ]
         }
