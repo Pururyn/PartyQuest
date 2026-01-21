@@ -45,7 +45,15 @@ public class Spawner : MonoBehaviour
     private int currentKnotCount = -1;
 
     void OnEnable() { SetupParent(); dirty = true; UpdateSpawned(); }
-    void Start() { dirty = true; UpdateSpawned(); }
+    void Start()
+    {
+        // MODIFICATION ICI :
+        // Si on est en train de jouer, on ne génère RIEN. On garde ce qui est dans la scène.
+        if (Application.isPlaying) return;
+
+        dirty = true;
+        UpdateSpawned();
+    }
     void OnValidate() { dirty = true; }
 
     void SetupParent()
@@ -53,11 +61,15 @@ public class Spawner : MonoBehaviour
         if (instancesParent == null)
         {
             Transform existing = transform.Find("__Spawner_Instances");
-            if (existing != null) instancesParent = existing;
+            if (existing != null)
+            {
+                instancesParent = existing;
+            }
             else
             {
                 GameObject go = new GameObject("__Spawner_Instances");
-                go.hideFlags = HideFlags.DontSaveInBuild;
+                // MODIFICATION ICI : On enlève le DontSaveInBuild pour que ça reste dans le jeu final
+                go.hideFlags = HideFlags.None;
                 go.transform.SetParent(transform, false);
                 instancesParent = go.transform;
             }
@@ -66,7 +78,10 @@ public class Spawner : MonoBehaviour
 
     void Update()
     {
-        if (!Application.isPlaying && !instantiateInEditor) return;
+        // MODIFICATION ICI : Sécurité supplémentaire
+        if (Application.isPlaying) return;
+
+        if (!instantiateInEditor) return;
         UpdateKnotPositionsCache();
         int n = knotPositionsCache.Count;
         if (!dirty && currentKnotCount == n) return;
