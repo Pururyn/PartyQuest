@@ -41,8 +41,13 @@ public class TurnManager : NetworkBehaviour
     private void SpawnPlayersFromSession()
     {
         var sessionData = GameSessionManager.Instance.PlayersInSession;
+
+        // On vide la liste locale pour être propre
+        activePlayers.Clear();
+
         for (int i = 0; i < sessionData.Count; i++)
         {
+            // 1. Création du pion
             GameObject go = Instantiate(playerPrefab);
             NetworkObject netObj = go.GetComponent<NetworkObject>();
 
@@ -51,14 +56,24 @@ public class TurnManager : NetworkBehaviour
 
             PlayerMover mover = go.GetComponent<PlayerMover>();
 
-            // --- CORRECTION ICI : IsAI avec majuscule ---
-            mover.IsAI.Value = sessionData[i].IsAI;
+            if (mover != null)
+            {
+                // --- C'EST ICI QUE LE CODE FAIT CE QUE TU FAISAIS A LA MAIN ---
 
-            activePlayers.Add(mover);
+                // On injecte le numéro (0, 1, 2 ou 3) dans la variable Network
+                mover.playerIndex.Value = i;
+
+                // On configure l'IA
+                mover.IsAI.Value = sessionData[i].IsAI;
+
+                // On l'ajoute à la liste du tour par tour
+                activePlayers.Add(mover);
+            }
         }
+
+        // On lance le premier tour
         StartNextTurn();
     }
-
     public void StartNextTurn()
     {
         if (activePlayers.Count == 0) return;
