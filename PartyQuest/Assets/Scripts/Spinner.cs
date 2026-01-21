@@ -60,12 +60,12 @@ public class Spinner : NetworkBehaviour
     [ClientRpc]
     public void EnableSpinClientRpc(bool state)
     {
+        if (state) StartSpinning(); //Players can see spin animation when player turn
         // On affiche le bouton seulement pour le proprietaire actuel
         if (IsOwner)
         {
             canSpin = state;
             if (spinButton != null) spinButton.SetActive(state);
-            if (state) StartSpinning();
         }
         else
         {
