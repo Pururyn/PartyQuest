@@ -7,7 +7,11 @@
       "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gameplay\\mini_game\\game1\\fishmovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\cthiery\\documents\\github\\partyquest\\partyquest\\assets\\scripts\\gameplay\\mini_game\\game1\\travelling.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|c:\\users\\cthiery\\documents\\github\\partyquest\\partyquest\\assets\\scripts\\gameplay\\mini_game\\game1\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gameplay\\mini_game\\game1\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|C:\\Users\\cthiery\\Documents\\GitHub\\PartyQuest\\PartyQuest\\assets\\scripts\\gameplay\\mini_game\\game1\\travelling.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{171999DC-B12C-CBE1-AD89-4679480992C5}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gameplay\\mini_game\\game1\\travelling.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -18,8 +22,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "GameManager.cs",
+              "DocumentMoniker": "C:\\Users\\cthiery\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\GameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\GameManager.cs",
+              "ToolTip": "C:\\Users\\cthiery\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\GameManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\GameManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-22T15:59:48.152Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -28,14 +45,14 @@
               "RelativeDocumentMoniker": "Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\FishMovement.cs",
               "ToolTip": "C:\\Users\\cthiery\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\FishMovement.cs",
               "RelativeToolTip": "Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\FishMovement.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-22T15:43:17.119Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Travelling.cs",
               "DocumentMoniker": "C:\\Users\\cthiery\\Documents\\GitHub\\PartyQuest\\PartyQuest\\Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\Travelling.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Gameplay\\Mini_Game\\Game1\\Travelling.cs",
