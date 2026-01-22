@@ -4,18 +4,30 @@ using UnityEngine.SceneManagement;
 
 public class NetworkMenu : MonoBehaviour
 {
+    [SerializeField] private GameObject hostPanel;
+    [SerializeField] private GameObject clientPanel;
+
     public void StartHost()
     {
         NetworkManager.Singleton.StartHost();
-        // Utiliser NetworkSceneManager pour que tous les clients suivent !
+        // Utilisation de NetworkManager pour que tous les clients suivent
         NetworkManager.Singleton.SceneManager.LoadScene("Game", LoadSceneMode.Single);
-        gameObject.SetActive(false);
+        HidePanel();
     }
 
     public void StartClient()
     {
-        // On se connecte SEULEMENT. On ne charge PAS de scène manuellement.
+        // On se connecte SEULEMENT pas besoin de charger
         NetworkManager.Singleton.StartClient();
-        gameObject.SetActive(false);
+        HidePanel();
+    }
+
+    private void HidePanel()
+    {
+        if (hostPanel != null && clientPanel != null)
+        {
+            hostPanel.SetActive(false);
+            clientPanel.SetActive(false);
+        }
     }
 }
