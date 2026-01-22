@@ -64,7 +64,7 @@ public class GameSessionManager : NetworkBehaviour
 
             // 2. On modifie le score
             data.Score += amount;
-            
+            if (data.Score < 0) data.Score = 0; // Pas de score négatif
             // CORRECTION ICI : J'ai supprimé la ligne "if (data.Score < 0)..."
             // Le score peut maintenant être négatif (ex: -3).
 
